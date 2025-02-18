@@ -1,3 +1,4 @@
+import uuid
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions, SetupOptions
 from apache_beam.options.pipeline_options import PipelineOptions
@@ -51,7 +52,7 @@ class GenerateCluster(beam.DoFn):
             node = {
                 "name": self.fake.company(),
                 "labels": label_string,
-                "id": random.randint(-2000000000, -1000000000)
+                "id": str(uuid.uuid4())
             }
             nodes.append(node)
 
@@ -96,7 +97,7 @@ def run():
             schema=pa.schema([
                 ('name', pa.string()),
                 ('labels', pa.string()),
-                ('id', pa.int64())
+                ('id', pa.string())
             ]),
             file_name_suffix='.parquet'
         )
@@ -104,8 +105,9 @@ def run():
         edges | 'Write edges' >> beam.io.WriteToParquet(
             f'{output_base_path}/edges/data',
             schema=pa.schema([
-                ('source_id', pa.int64()),
-                ('target_id', pa.int64()),
+                ('source_id', pa.string()),
+                ('target_id', pa.string()),
+                ('predicate', pa.string()),
                 ('count', pa.int64())
             ]),
             file_name_suffix='.parquet'
